@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Custom WooCommerce Sales Report
+Plugin Name: WooCommerce Sales Insights
 Plugin URI: https://www.winauthority.com/
-Description: A custom plugin for sending daily sales reports via email.
+Description: A custom plugin for sending monthly sales reports via email.
 Author: Win Authority LLC
 Author URI: https://www.winauthority.com/
 Version: 1.0
@@ -43,17 +43,19 @@ function custom_sales_report_activate()
     $test_message = 'Log file created and plugin activated.';
     custom_sales_report_log_event($test_message);
 
-    // Schedule the daily sales report email
+    // Schedule the sales report email
     if (!wp_next_scheduled('send_sales_email')) {
         $send_time = get_option('custom_sales_report_send_time', '12:00 am');
-        $next_send_time = strtotime('today ' . $send_time);
-        if ($next_send_time < time()) {
-            $next_send_time = strtotime('+1 day', $next_send_time);
-        }
+        $current_time = current_time('timestamp');
 
+        // Calculate the next send time for the start of the following month based on the user-specified time
+        $next_month = strtotime('first day of +1 month', $current_time);
+        $next_send_time = strtotime('today ' . $send_time, $next_month);
 
-        wp_schedule_event($next_send_time, 'daily', 'send_sales_email');
+        // Schedule the email
+        wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
     }
+
 
     add_custom_menu_item();
 }
@@ -65,20 +67,20 @@ function custom_sales_report_deactivate()
     wp_clear_scheduled_hook('send_sales_email');
 }
 
-// Schedule the daily sales report email
+// Schedule the sales report email
 function custom_sales_report_schedule_email()
 {
     $send_time = get_option('custom_sales_report_send_time', '12:00 am');
 
-    // Calculate the next send time based on the user-specified time
-    $next_send_time = strtotime('today ' . $send_time);
-    if ($next_send_time < time()) {
-        $next_send_time = strtotime('+1 day', $next_send_time);
-    }
+    // Calculate the next send time for the start of the following month based on the user-specified time
+    $current_time = current_time('timestamp');
+    $next_month = strtotime('first day of +1 month', $current_time);
+    $next_send_time = strtotime('today ' . $send_time, $next_month);
 
     // Schedule the email
-    wp_schedule_event($next_send_time, 'daily', 'send_sales_email');
+    wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
 }
+
 
 // Add settings page to the admin menu
 add_action('admin_menu', 'custom_sales_report_add_settings_page');
@@ -90,11 +92,13 @@ add_action('admin_init', 'custom_sales_report_register_settings');
 function custom_sales_report_add_settings_page()
 {
     add_menu_page(
-        'Custom WooCommerce Sales Report Settings',
-        'Custom WooCommerce Sales Report',
+        'WooCommerce Sales Insights Settings',
+        'WooCommerce Sales Insights',
         'manage_options',
         'custom-sales-report-settings',
-        'custom_sales_report_settings'
+        'custom_sales_report_settings',
+        'dashicons-chart-bar',
+        99
     );
 }
 

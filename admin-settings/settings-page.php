@@ -33,13 +33,13 @@ function custom_sales_report_settings()
         update_option('custom_sales_report_send_time', $send_time);
 
         // Calculate the next send time
-        $next_send_time = strtotime('today ' . $send_time . ' ' . $site_timezone);
+        $next_send_time = strtotime('first day of +1 month', strtotime('today ' . $send_time . ' ' . $site_timezone));
         $current_time = strtotime(current_time('Y-m-d H:i:s'));
 
         // Check if the next send time is in the past
         if ($next_send_time < $current_time) {
             // Add one day to the current date
-            $next_send_time = strtotime('+1 day', $current_time);
+            $next_send_time = strtotime('first day of +1 month', $current_time);
 
             // Set the time for the next send time
             $next_send_time = strtotime($send_time, $next_send_time);
@@ -67,7 +67,7 @@ function custom_sales_report_settings()
         wp_clear_scheduled_hook('send_sales_email');
 
         // Schedule the event with the new send time
-        wp_schedule_event($next_send_time, 'daily', 'send_sales_email');
+        wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
 
         // Format the next scheduled time
         $next_scheduled_time = wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next_send_time);
@@ -87,7 +87,7 @@ function custom_sales_report_settings()
     // Display the settings page
 ?>
     <div class="wrap">
-        <h1>Custom WooCommerce Sales Report Settings</h1>
+        <h1>WooCommerce Sales Insights</h1>
         <form method="post">
             <table class="form-table">
                 <tr>
@@ -98,10 +98,10 @@ function custom_sales_report_settings()
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row">Receive the report at (daily)</th>
+                    <th scope="row">Receive the report at (monthly)</th>
                     <td>
                         <input type="time" name="send_time" value="<?php echo esc_attr($send_time); ?>" class="regular-text">
-                        <p class="description">Enter the preferred time to send the sales report.</p>
+                        <p class="description">Enter the preferred time to receive the sales report.</p>
                     </td>
                 </tr>
                 <tr>

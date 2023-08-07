@@ -3,45 +3,71 @@
 // Send sales report email
 function send_sales_email()
 {
-    // Set the timezone
-    if ($site_timezone) {
-        date_default_timezone_set($site_timezone);
-    }
+    try {
 
-    $email_addresses = get_option('custom_sales_report_email_addresses', '');
-    $email_addresses = explode(',', $email_addresses); // Split the email addresses by comma
-    $email_addresses = array_map('trim', $email_addresses); // Trim whitespace from each email address
-    $send_time = get_option('custom_sales_report_send_time', '8:00 am');
-    $woocommerce_currency_symbol = get_woocommerce_currency_symbol();
+        $site_timezone = get_option('timezone_string');
+        // Set the timezone
+        if ($site_timezone) {
+            date_default_timezone_set($site_timezone);
+        }
 
-    // Calculate the next send time
-    $next_send_time = strtotime('today ' . $send_time . ' ' . $site_timezone);
-    $current_time = strtotime(current_time('Y-m-d H:i:s'));
+        $email_addresses = get_option('custom_sales_report_email_addresses', '');
+        $email_addresses = explode(',', $email_addresses); // Split the email addresses by comma
+        $email_addresses = array_map('trim', $email_addresses); // Trim whitespace from each email address
+        $send_time = get_option('custom_sales_report_send_time', '8:00 am');
+        $woocommerce_currency_symbol = get_woocommerce_currency_symbol();
 
-    // Check if the next send time is in the past
-    if ($next_send_time < $current_time) {
-        // Add one day to the current date
-        $next_send_time = strtotime('+1 day', $current_time);
+        $next_month_timestamp = strtotime('first day of next month');
 
-        // Set the time for the next send time
-        $next_send_time = strtotime($send_time, $next_send_time);
-    }
+        // Calculate the next send time
+        // $next_send_time = strtotime('today ' . $send_time . ' ' . $site_timezone);
+        // $current_time = strtotime(current_time('Y-m-d H:i:s'));
 
-    // Calculate the time difference between the next scheduled send time and the current time
-    $time_difference = $next_send_time - $current_time;
+        // Check if the next send time is in the past
+        // if ($next_send_time < $current_time) {
+        //     // Add one day to the current date
+        //     $next_send_time = strtotime('+1 day', $current_time);
 
-    // Schedule the next email based on the calculated time difference
-    wp_schedule_event($next_send_time, 'daily', 'send_sales_email');
+        //     // Set the time for the next send time
+        //     $next_send_time = strtotime($send_time, $next_send_time);
+        // }
 
-    // Calculate the previous day's date for the sales report
-    $previous_day = strtotime('-1 day');
-    $sales_report_date = wp_date('F j, Y', $previous_day);
+        // Calculate the time difference between the next scheduled send time and the current time
+        // $time_difference = $next_send_time - $current_time;
 
-    $total_sales = 0;
-    $total_order_amount = 0;
-    $count = 0;
+        // Remove this line, as we will calculate the next send time based on the user's timezone
+        // $next_send_time = strtotime('today ' . $send_time . ' ' . $site_timezone);
 
-    $sales_report = '<!doctype html>
+        // Calculate the current time in the user's timezone
+        $current_time = new DateTime('now', new DateTimeZone($site_timezone));
+
+        // Parse the time from the settings (e.g., '8:00 am') to a DateTime object
+        $send_time_parts = date_parse($send_time);
+        $send_time_datetime = new DateTime();
+        $send_time_datetime->setTime($send_time_parts['hour'], $send_time_parts['minute'], 0);
+
+        // Calculate the next send time
+        // If the current time is after or equal to the set send time, schedule it for the next month
+        $next_month = new DateTime('first day of next month', new DateTimeZone($site_timezone));
+        // Calculate the next send time for the start of the next month based on the user-specified time and site timezone
+        $next_send_time = strtotime('first day of +1 month', strtotime('today ' . $send_time . ' ' . $site_timezone));
+
+        // Schedule the next email based on the calculated time difference
+        wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
+
+
+        // Schedule the next email based on the calculated time difference
+        // wp_schedule_event($next_send_time, 'daily', 'send_sales_email');
+
+        // Calculate the previous day's date for the sales report
+        $sales_report_date = wp_date('F j, Y', strtotime('first day of last month')) . ' - ' . wp_date('F j, Y', strtotime('last day of last month'));
+
+        $total_sales = 0;
+        $total_order_amount = 0;
+        $count = 0;
+
+        custom_sales_report_log_event('Preparing to send sales report email...');
+        $sales_report = '<!doctype html>
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
         xmlns:o="urn:schemas-microsoft-com:office:office">
     
@@ -58,7 +84,7 @@ function send_sales_email()
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Daily Sales Report for ' . wp_date('F j, Y', strtotime('-1 day')) . '</title>
+        <title>Monthly Sales Report for ' . $sales_report_date . '</title>
     
         <style type="text/css">
             p {
@@ -901,7 +927,7 @@ function send_sales_email()
     <body>
         <!--*|IF:MC_PREVIEW_TEXT|*-->
         <!--[if !gte mso 9]><!----><span class="mcnPreviewText"
-            style="display:none; font-size:0px; line-height:0px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; visibility:hidden; mso-hide:all;">Daily Sales Report for ' . wp_date('F j, Y', strtotime('-1 day')) . '</span><!--<![endif]-->
+            style="display:none; font-size:0px; line-height:0px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; visibility:hidden; mso-hide:all;">Monthly Sales Report for ' . $sales_report_date . '</span><!--<![endif]-->
         <!--*|END:IF|*-->
         <center>
             <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable">
@@ -946,7 +972,8 @@ function send_sales_email()
     
                                                                     <p style="text-align: justify;">This email was sent from
                                                                         your website ' . get_site_url() . ' and is a summary of
-                                                                        the daily sales on your website for ' . wp_date('F j, Y', strtotime('-1 day')) . '. Please
+                                                                        the monthly sales on your website for between ' . $sales_report_date .
+            custom_sales_report_log_event('Email body 1') . '. Please
                                                                         find more details below</p>
     
                                                                 </td>
@@ -976,89 +1003,6 @@ function send_sales_email()
                     <![endif]-->
     
                                                     <!--[if mso]>
-                    <td valign="top" width="600" style="width:600px;">
-                    <![endif]-->
-                                                    <table align="left" border="0" cellpadding="0" cellspacing="0"
-                                                        style="max-width:100%; min-width:100%;" width="100%"
-                                                        class="mcnTextContentContainer">
-                                                        <tbody>
-                                                            <tr>
-    
-                                                                <td valign="top" class="mcnTextContent"
-                                                                    style="padding-top:0;">
-    
-                                                                    <div style="width: 100%; display: flex;">
-                                                                        <div
-                                                                            style="width:25%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('completed') . '</span><br>
-                                                                                <br>
-                                                                                <span>Orders completed</span>
-                                                                            </p>
-                                                                        </div>
-    
-                                                                        <div
-                                                                            style="width:25%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('processing') . '</span><br>
-                                                                                <br>
-                                                                                <span>Orders in processing</span>
-                                                                            </p>
-                                                                        </div>
-    
-                                                                        <div
-                                                                            style="width:25%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('cancelled') . '</span><br>
-                                                                                <br>
-                                                                                <span>Cancelled orders</span>
-                                                                            </p>
-                                                                        </div>
-                                                                        <div
-                                                                            style="width:25%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('on-hold') . '</span><br>
-                                                                                <br>
-                                                                                <span>On-hold orders</span>
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div style="width: 100%; display: flex;">
-                                                                        <div
-                                                                            style="width:33.3333%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('cancelled') . '</span><br>
-                                                                                <br>
-                                                                                <span>Cancelled orders</span>
-                                                                            </p>
-                                                                        </div>
-                                                                        <div
-                                                                            style="width:33.3333%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('refunded') . '</span><br>
-                                                                                <br>
-                                                                                <span>Orders refunded</span>
-                                                                            </p>
-                                                                        </div>
-                                                                        <div
-                                                                            style="width:33.3333%; border: 1px solid #efefef; padding: 10px">
-                                                                            <p style="text-align: center;"><span
-                                                                                    style="font-size:60px">' . get_count_of_individual_order_status('failed') . '</span><br>
-                                                                                <br>
-                                                                                <span>Orders failed</span>
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-    
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                    <!--[if mso]>
-                    </td>
-                    <![endif]-->
-    
-                                                    <!--[if mso]>
                     </tr>
                     </table>
                     <![endif]-->
@@ -1067,509 +1011,114 @@ function send_sales_email()
                                         </tbody>
                                     </table>
                                     <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnCodeBlock">
-                                        <tbody class="mcnTextBlockOuter">
-                                            <tr>
-                                                <td valign="top" class="mcnTextBlockInner">
-                                                    <div style="overflow-x:auto;" class="table">
-                                                        <table>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td colspan="7"><p style="font-size: large;">Completed orders for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                                </tr>
-                                                                <tr>
-																<th>#</th>
-																<th>Order ID</th>
-																<th>Product Name</th>
-																<th>Product Category</th>
-																<th>Order Quantity</th>
-																<th>Supplier Name</th>
-																<th>Order Amount</th>
-															</tr>
-                                                                ';
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner">
+                <div style="overflow-x:auto;" class="table">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td colspan="9"><p style="font-size: large;">Completed orders between ' . $sales_report_date . '</p></td>
+                            </tr>
+                            <tr>
+                                <th>#</th>
+                                <th>Order ID</th>
+                                <th>Product Name</th>
+                                <th>Product Category</th>
+                                <th>Order Quantity</th>
+                                <th>Supplier Name</th>
+                                <th>Order Amount</th>
+                                <th>Commission</th>
+                                <th>Total Amount After Commission</th>
+                            </tr>
+                            ';
+        custom_sales_report_log_event('Email body 2');
+        $completed_sales_query = get_completed_sales_data();
+        custom_sales_report_log_event('completed sales query: ' . print_r($completed_sales_query));
+        custom_sales_report_log_event('Outside completed sales loop');
+        if ($completed_sales_query->have_posts()) {
+            custom_sales_report_log_event('inside completed sales loop');
+            while ($completed_sales_query->have_posts()) {
+                custom_sales_report_log_event('inside completed sales loop while');
+                $completed_sales_query->the_post();
+                $order = wc_get_order(get_the_ID());
 
-    $completed_sales_query = get_completed_sales_data();
-    if ($completed_sales_query->have_posts()) {
-        while ($completed_sales_query->have_posts()) {
-            $completed_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
+                foreach ($order->get_items() as $item_id => $item) {
+                    $product = $item->get_product();
+                    $product_id = $item->get_product_id();
+                    $product_name = $product->get_name();
+                    $product_url = $product->get_permalink();
+                    $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
+                    $product_commission = 0;
+                    $total_price = 0;
 
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
+                    // Check if 'FROK' is in the product categories
+                    if (in_array('FROK', $product_categories)) {
+                        // $product_commission = 0;
+                        try {
+                            $total_price = $item->get_total();
+                            $product_commission = $total_price * (60 / 100);
+                        } catch (Exception $e) {
+                            custom_sales_report_log_errors('Exception: ' . $e);
+                        }
+                    }
 
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
+                    $supplier_name = '';
+                    $supplier_email = '';
+                    // Retrieve the Supplier Name from the product
+                    if ($supplier = get_field('supplier', $product_id, true)) {
+                        $supplier_name = $supplier->name;
+                    } else {
+                        $supplier_name = 'No supplier name found'; // No Supplier Name available
+                        custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
+                    }
+
+                    $product_commission_final = null;
+
+                    try {
+                        if ($product_commission !== 0) {
+                            $product_commission_final = get_option('woocommerce_currency') . '' . wc_price($product_commission);
+                        } else {
+                            $product_commission_final = 'Not a FROK product';
+                        }
+                    } catch (Exception $e) {
+                        custom_sales_report_log_errors('Exception: ' . $e);
+                    }
+
+                    // $supplier = "Not available";
+
+                    $sales_report .= '<tr>';
+                    $sales_report .= '<td>' . $count += 1 . '</td>';
+                    $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
+                    $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
+                    $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
+                    $sales_report .= '<td>' . $item->get_quantity() . '</td>';
+                    $sales_report .= '<td>' . $supplier_name . '</br>' . $supplier_email . '</td>';
+                    $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
+                    $sales_report .= '<td>' . $product_commission_final . '</td>';
+                    $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total() - $product_commission) . '</td>';
+                    $sales_report .= '</tr>';
+
+                    $total_sales += $item->get_quantity();
+                    $total_order_amount += $item->get_total();
                 }
-
-                // $supplier = "Not available";
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td>' . $supplier_name . '</br>' . $supplier_email . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
             }
+            $sales_report .= '<tr>
+                                <td colspan="6">Total</td>
+                                <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
+                            </tr>';
+            wp_reset_postdata();
+        } else {
+            $sales_report .= '<tr><td colspan="7">No completed orders found.</td></tr>';
         }
-        $sales_report .= '<tr>
-        <td colspan="6">Total</td>
-        <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol .'' . $total_order_amount . '</td>
-    </tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No completed orders found.</td></tr>';
-    }
-    $sales_report .= '
+        $sales_report .= '
     
                                                                 
                                                             </tbody>
                                                         </table>
                                                     </div>
     
-                                                    <div style="overflow-x:auto;" class="table">
-                                                    <table>
-                                                        <tbody>
-                                                            <tr>
-                                                                <td colspan="7"><p style="font-size: large;">Orders in processing for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                            </tr>
-                                                            <tr>
-                                                            <th>#</th>
-                                                            <th>Order ID</th>
-                                                            <th>Product Name</th>
-                                                            <th>Product Category</th>
-                                                            <th>Order Quantity</th>
-                                                            <th>Supplier Name</th>
-                                                            <th>Order Amount</th>
-                                                        </tr>
-                                                            ';
-    $processing_sales_query = get_processing_sales_data();
-    if ($processing_sales_query->have_posts()) {
-        $count = 0;
-        $total_sales = 0;
-        $total_order_amount = 0;
-        while ($processing_sales_query->have_posts()) {
-            $processing_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
-
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
-                }
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td> ' . $supplier_name . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
-            }
-        }
-        $sales_report .= '<tr>
-    <td colspan="6">Total</td>
-    <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-</tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No processing orders found.</td></tr>';
-    }
-    $sales_report .= '
-
-                                                            
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                
-                                                <div style="overflow-x:auto;" class="table">
-                                                <table>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td colspan="7"><p style="font-size: large;">Refunded orders for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                        </tr>
-                                                        <tr>
-                                                        <th>#</th>
-                                                        <th>Order ID</th>
-                                                        <th>Product Name</th>
-                                                        <th>Product Category</th>
-                                                        <th>Order Quantity</th>
-                                                        <th>Supplier Name</th>
-                                                        <th>Order Amount</th>
-                                                    </tr>
-                                                        ';
-
-    $refunded_sales_query = get_refunded_sales_data();
-    if ($refunded_sales_query->have_posts()) {
-        $count = 0;
-        $total_sales = 0;
-        $total_order_amount = 0;
-        while ($refunded_sales_query->have_posts()) {
-            $refunded_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
-
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
-                }
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td>' . $supplier_name . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
-            }
-        }
-        $sales_report .= '<tr>
-<td colspan="6">Total</td>
-<td>'  . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-</tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No refunded orders found.</td></tr>';
-    }
-    $sales_report .= '
-
-                                                        
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div style="overflow-x:auto;" class="table">
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td colspan="7"><p style="font-size: large;">On-hold orders for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                    </tr>
-                                                    <tr>
-                                                    <th>#</th>
-                                                    <th>Order ID</th>
-                                                    <th>Product Name</th>
-                                                    <th>Product Category</th>
-                                                    <th>Order Quantity</th>
-                                                    <th>Supplier Name</th>
-                                                    <th>Order Amount</th>
-                                                </tr>
-                                                    ';
-    $on_hold_sales_query = get_on_hold_sales_data();
-    if ($on_hold_sales_query->have_posts()) {
-        $count = 0;
-        $total_sales = 0;
-        $total_order_amount = 0;
-        while ($on_hold_sales_query->have_posts()) {
-            $on_hold_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
-
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
-                }
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td>' . $supplier_name . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
-            }
-        }
-        $sales_report .= '<tr>
-<td colspan="6">Total</td>
-<td>'  . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-</tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No on-hold orders found.</td></tr>';
-    }
-    $sales_report .= '
-
-                                                    
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <div style="overflow-x:auto;" class="table">
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td colspan="7"><p style="font-size: large;">Pending orders for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                    </tr>
-                                                    <tr>
-                                                    <th>#</th>
-                                                    <th>Order ID</th>
-                                                    <th>Product Name</th>
-                                                    <th>Product Category</th>
-                                                    <th>Order Quantity</th>
-                                                    <th>Supplier Name</th>
-                                                    <th>Order Amount</th>
-                                                </tr>
-                                                    ';
-    $pending_sales_query = get_pending_sales_data();
-    if ($pending_sales_query->have_posts()) {
-        $count = 0;
-        $total_sales = 0;
-        $total_order_amount = 0;
-        while ($pending_sales_query->have_posts()) {
-            $pending_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
-
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
-                }
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td>' . $supplier_name . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
-            }
-        }
-        $sales_report .= '<tr>
-<td colspan="6">Total</td>
-<td>'  . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-</tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No pending orders found.</td></tr>';
-    }
-    $sales_report .= '
-
-                                                    
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <div style="overflow-x:auto;" class="table">
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td colspan="7"><p style="font-size: large;">Cancelled orders for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                    </tr>
-                                                    <tr>
-                                                    <th>#</th>
-                                                    <th>Order ID</th>
-                                                    <th>Product Name</th>
-                                                    <th>Product Category</th>
-                                                    <th>Order Quantity</th>
-                                                    <th>Supplier Name</th>
-                                                    <th>Order Amount</th>
-                                                </tr>
-                                                    ';
-    $cancelled_sales_query = get_cancelled_sales_data();
-    if ($cancelled_sales_query->have_posts()) {
-        $count = 0;
-        $total_sales = 0;
-        $total_order_amount = 0;
-        while ($cancelled_sales_query->have_posts()) {
-            $cancelled_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
-
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
-                }
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td>' . $supplier_name . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
-            }
-        }
-        $sales_report .= '<tr>
-<td colspan="6">Total</td>
-<td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-</tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No cancelled orders found.</td></tr>';
-    }
-    $sales_report .= '
-
-                                                    
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <div style="overflow-x:auto;" class="table">
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td colspan="7"><p style="font-size: large;">Failed orders for ' . wp_date('F j, Y', strtotime('-1 day')) . '</p></td>
-                                                    </tr>
-                                                    <tr>
-                                                    <th>#</th>
-                                                    <th>Order ID</th>
-                                                    <th>Product Name</th>
-                                                    <th>Product Category</th>
-                                                    <th>Order Quantity</th>
-                                                    <th>Supplier Name</th>
-                                                    <th>Order Amount</th>
-                                                </tr>
-                                                    ';
-    $failed_sales_query = get_failed_sales_data();
-    if ($failed_sales_query->have_posts()) {
-        $count = 0;
-        $total_sales = 0;
-        $total_order_amount = 0;
-        while ($failed_sales_query->have_posts()) {
-            $failed_sales_query->the_post();
-            $order = wc_get_order(get_the_ID());
-
-            foreach ($order->get_items() as $item_id => $item) {
-                $product = $item->get_product();
-                $product_id = $item->get_product_id();
-                $product_name = $product->get_name();
-                $product_url = $product->get_permalink();
-                $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-
-                $supplier_name = '';
-                $supplier_email = '';
-                // Retrieve the Supplier Name from the product
-                if ($supplier = get_field('supplier', $product_id, true)) {
-                    $supplier_name = $supplier->name;
-                } else {
-                    $supplier_name = 'No supplier name found'; // No Supplier Name available
-                    custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
-                }
-
-                $sales_report .= '<tr>';
-                $sales_report .= '<td>' . $count += 1 . '</td>';
-                $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                $sales_report .= '<td>' . $item->get_quantity() . '</td>';
-                $sales_report .= '<td>' . $supplier_name . '</td>';
-                $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                $sales_report .= '</tr>';
-
-                $total_sales += $item->get_quantity();
-                $total_order_amount += $item->get_total();
-            }
-        }
-        $sales_report .= '<tr>
-<td colspan="6">Total</td>
-<td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-</tr>';
-        wp_reset_postdata();
-    } else {
-        $sales_report .= '<tr><td colspan="7">No failed orders found.</td></tr>';
-    }
-    $sales_report .= '
-
-                                                    
-                                                </tbody>
-                                            </table>
-                                        </div>
-    
-                                                </td>
+                                                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1636,19 +1185,22 @@ function send_sales_email()
     
     </html>';
 
-    // Send the email
-    $subject = 'Daily Sales Report - ' . $sales_report_date;
-    $headers = array('Content-Type: text/html; charset=UTF-8');
-    $message = $sales_report;
-    wp_mail($email_addresses, $subject, $message, $headers);
+        // Send the email
+        $subject = 'Daily Sales Report - ' . $sales_report_date;
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+        $message = $sales_report;
+        wp_mail($email_addresses, $subject, $message, $headers);
 
-    // Filter out empty values
-    $email_addresses = array_filter($email_addresses);
+        // Filter out empty values
+        $email_addresses = array_filter($email_addresses);
 
-    // Convert the array of email addresses into a comma-separated string
-    $email_string = implode(',', $email_addresses);
+        // Convert the array of email addresses into a comma-separated string
+        $email_string = implode(',', $email_addresses);
 
-    // Log the event
-    $log_message = 'Sales report email sent to: ' . $email_string;
-    custom_sales_report_log_event($log_message);
+        // Log the event
+        $log_message = 'Sales report email sent to: ' . $email_string;
+        custom_sales_report_log_event($log_message);
+    } catch (Exception $e) {
+        custom_sales_report_log_event($e);
+    }
 }

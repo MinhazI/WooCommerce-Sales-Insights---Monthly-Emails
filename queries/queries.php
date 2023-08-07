@@ -1,23 +1,28 @@
 <?php
-// Get sales data from WooCommerce
 function get_completed_sales_data()
 {
+    try {
+        // Calculate the start and end date of the previous month
+        $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+        $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-completed',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
-            'inclusive' => true,
-        ),
-    );
+        $args = array(
+            'post_type' => 'shop_order',
+            'posts_per_page' => -1,
+            'post_status' => 'wc-completed',
+            'date_query'     => array(
+                'after'     => $start_date,
+                'before'    => $end_date,
+                'inclusive' => true,
+            ),
+        );
 
-    return $completed_sales_query = new WP_Query($args);
+        return $completed_sales_query = new WP_Query($args);
+    } catch (Exception $e) {
+        custom_sales_report_log_event($e);
+    }
 }
+
 
 // Get processing order data from WooCommerce
 function get_processing_sales_data()
