@@ -1,7 +1,7 @@
 <?php
 
 // Log an event
-function custom_sales_report_log_event($message)
+function woocommerce_sales_insights_log_event($message)
 {
     $log_file = plugin_dir_path(__FILE__) . 'sales-report-log.txt';
     $log_entry = '[' . wp_date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL;
@@ -9,7 +9,7 @@ function custom_sales_report_log_event($message)
 }
 
 // Log errors
-function custom_sales_report_log_errors($message)
+function woocommerce_sales_insights_log_errors($message)
 {
     $log_file = plugin_dir_path(__FILE__) . 'sales-report-log.txt';
     $log_entry = '[Error] [' . wp_date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL;

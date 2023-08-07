@@ -1,7 +1,7 @@
 <?php
 
 // Settings page callback
-function custom_sales_report_settings()
+function woocommerce_sales_insights_settings()
 {
     // Get the site's timezone from WordPress settings
     $site_timezone = get_option('timezone_string');
@@ -12,7 +12,7 @@ function custom_sales_report_settings()
     }
 
     // Save the settings if form is submitted
-    if (isset($_POST['custom_sales_report_submit'])) {
+    if (isset($_POST['woocommerce_sales_insights_submit'])) {
         // Retrieve and sanitize the email addresses
         $email_addresses = isset($_POST['email_addresses']) ? sanitize_text_field($_POST['email_addresses']) : '';
         $email_addresses = preg_replace('/\s+/', '', $email_addresses); // Remove whitespace
@@ -29,8 +29,8 @@ function custom_sales_report_settings()
         $send_time = isset($_POST['send_time']) ? sanitize_text_field($_POST['send_time']) : '';
 
         // Update the option with the array of email addresses
-        update_option('custom_sales_report_email_addresses', $email_string);
-        update_option('custom_sales_report_send_time', $send_time);
+        update_option('woocommerce_sales_insights_email_addresses', $email_string);
+        update_option('woocommerce_sales_insights_send_time', $send_time);
 
         // Calculate the next send time
         $next_send_time = strtotime('first day of +1 month', strtotime('today ' . $send_time . ' ' . $site_timezone));
@@ -48,7 +48,7 @@ function custom_sales_report_settings()
             if ($next_send_time === false) {
                 // Time format is invalid, handle the error
                 $error_message = 'Invalid time format. Please enter a valid time.';
-                custom_sales_report_log_event($error_message);
+                woocommerce_sales_insights_log_event($error_message);
                 echo '<div class="error notice"><p>' . $error_message . '</p></div>';
                 return;
             }
@@ -58,7 +58,7 @@ function custom_sales_report_settings()
         if ($next_send_time === false) {
             // Date or timezone is invalid, handle the error
             $error_message = 'Invalid date or timezone. Please check your settings.';
-            custom_sales_report_log_event($error_message);
+            woocommerce_sales_insights_log_event($error_message);
             echo '<div class="error notice"><p>' . $error_message . '</p></div>';
             return;
         }
@@ -74,13 +74,13 @@ function custom_sales_report_settings()
 
         // Display success message
         $success_message = sprintf('Settings saved. Next scheduled email: %s', $next_scheduled_time);
-        custom_sales_report_log_event($success_message);
+        woocommerce_sales_insights_log_event($success_message);
         echo '<div class="updated notice"><p>' . $success_message . '</p></div>';
     }
 
     // Retrieve saved settings
-    $email_addresses = get_option('custom_sales_report_email_addresses', '');
-    $send_time = get_option('custom_sales_report_send_time', '12:00 am');
+    $email_addresses = get_option('woocommerce_sales_insights_email_addresses', '');
+    $send_time = get_option('woocommerce_sales_insights_send_time', '12:00 am');
     $next_send_time = wp_next_scheduled('send_sales_email');
     $next_scheduled_time = $next_send_time ? wp_date(get_option('date_format') . ' ' . get_option('time_format'), $next_send_time) : '';
 
@@ -117,7 +117,7 @@ function custom_sales_report_settings()
                     </td>
                 </tr>
             </table>
-            <p class="submit"><input type="submit" name="custom_sales_report_submit" class="button-primary" value="Save Settings"></p>
+            <p class="submit"><input type="submit" name="woocommerce_sales_insights_submit" class="button-primary" value="Save Settings"></p>
         </form>
     </div>
 <?php

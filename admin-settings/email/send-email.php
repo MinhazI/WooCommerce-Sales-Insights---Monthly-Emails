@@ -11,10 +11,10 @@ function send_sales_email()
             date_default_timezone_set($site_timezone);
         }
 
-        $email_addresses = get_option('custom_sales_report_email_addresses', '');
+        $email_addresses = get_option('woocommerce_sales_insights_email_addresses', '');
         $email_addresses = explode(',', $email_addresses); // Split the email addresses by comma
         $email_addresses = array_map('trim', $email_addresses); // Trim whitespace from each email address
-        $send_time = get_option('custom_sales_report_send_time', '8:00 am');
+        $send_time = get_option('woocommerce_sales_insights_send_time', '8:00 am');
         $woocommerce_currency_symbol = get_woocommerce_currency_symbol();
 
         $next_month_timestamp = strtotime('first day of next month');
@@ -66,7 +66,7 @@ function send_sales_email()
         $total_order_amount = 0;
         $count = 0;
 
-        custom_sales_report_log_event('Preparing to send sales report email...');
+        woocommerce_sales_insights_log_event('Preparing to send sales report email...');
         $sales_report = '<!doctype html>
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
         xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -973,7 +973,7 @@ function send_sales_email()
                                                                     <p style="text-align: justify;">This email was sent from
                                                                         your website ' . get_site_url() . ' and is a summary of
                                                                         the monthly sales on your website for between ' . $sales_report_date .
-            custom_sales_report_log_event('Email body 1') . '. Please
+            woocommerce_sales_insights_log_event('Email body 1') . '. Please
                                                                         find more details below</p>
     
                                                                 </td>
@@ -1032,14 +1032,14 @@ function send_sales_email()
                                 <th>Total Amount After Commission</th>
                             </tr>
                             ';
-        custom_sales_report_log_event('Email body 2');
+        woocommerce_sales_insights_log_event('Email body 2');
         $completed_sales_query = get_completed_sales_data();
-        custom_sales_report_log_event('completed sales query: ' . print_r($completed_sales_query));
-        custom_sales_report_log_event('Outside completed sales loop');
+        woocommerce_sales_insights_log_event('completed sales query: ' . print_r($completed_sales_query));
+        woocommerce_sales_insights_log_event('Outside completed sales loop');
         if ($completed_sales_query->have_posts()) {
-            custom_sales_report_log_event('inside completed sales loop');
+            woocommerce_sales_insights_log_event('inside completed sales loop');
             while ($completed_sales_query->have_posts()) {
-                custom_sales_report_log_event('inside completed sales loop while');
+                woocommerce_sales_insights_log_event('inside completed sales loop while');
                 $completed_sales_query->the_post();
                 $order = wc_get_order(get_the_ID());
 
@@ -1059,7 +1059,7 @@ function send_sales_email()
                             $total_price = $item->get_total();
                             $product_commission = $total_price * (60 / 100);
                         } catch (Exception $e) {
-                            custom_sales_report_log_errors('Exception: ' . $e);
+                            woocommerce_sales_insights_log_errors('Exception: ' . $e);
                         }
                     }
 
@@ -1070,7 +1070,7 @@ function send_sales_email()
                         $supplier_name = $supplier->name;
                     } else {
                         $supplier_name = 'No supplier name found'; // No Supplier Name available
-                        custom_sales_report_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
+                        woocommerce_sales_insights_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
                     }
 
                     $product_commission_final = null;
@@ -1082,7 +1082,7 @@ function send_sales_email()
                             $product_commission_final = 'Not a FROK product';
                         }
                     } catch (Exception $e) {
-                        custom_sales_report_log_errors('Exception: ' . $e);
+                        woocommerce_sales_insights_log_errors('Exception: ' . $e);
                     }
 
                     // $supplier = "Not available";
@@ -1145,8 +1145,7 @@ function send_sales_email()
                                                                     style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
     
                                                                     <p style="text-align: center;"><small>This report was
-                                                                            generated automatically by the Custom
-                                                                            WooCommerce Sales Report plugin developed by Win
+                                                                            generated automatically by the WooCommerce Sales Insights plugin developed by Win
                                                                             Authority LLC.</small></p>
     
                                                                 </td>
@@ -1199,8 +1198,8 @@ function send_sales_email()
 
         // Log the event
         $log_message = 'Sales report email sent to: ' . $email_string;
-        custom_sales_report_log_event($log_message);
+        woocommerce_sales_insights_log_event($log_message);
     } catch (Exception $e) {
-        custom_sales_report_log_event($e);
+        woocommerce_sales_insights_log_event($e);
     }
 }

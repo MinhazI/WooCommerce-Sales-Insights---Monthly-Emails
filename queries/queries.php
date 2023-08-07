@@ -19,7 +19,7 @@ function get_completed_sales_data()
 
         return $completed_sales_query = new WP_Query($args);
     } catch (Exception $e) {
-        custom_sales_report_log_event($e);
+        woocommerce_sales_insights_log_errors($e);
     }
 }
 

@@ -17,10 +17,10 @@ require_once(__DIR__ . '/admin-settings/email/send-email.php');
 // date_default_timezone_set(get_option('timezone_string'));
 
 // Register the activation hook
-register_activation_hook(__FILE__, 'custom_sales_report_activate');
+register_activation_hook(__FILE__, 'woocommerce_sales_insights_activate');
 
 // Register the deactivation hook
-register_deactivation_hook(__FILE__, 'custom_sales_report_deactivate');
+register_deactivation_hook(__FILE__, 'woocommerce_sales_insights_deactivate');
 
 // Get the site's timezone from WordPress settings
 $site_timezone = get_option('timezone_string');
@@ -31,7 +31,7 @@ if ($site_timezone) {
 }
 
 // Activation hook callback
-function custom_sales_report_activate()
+function woocommerce_sales_insights_activate()
 {
     // Create the log file
     $log_file = plugin_dir_path(__FILE__) . '/admin-settings/logs/sales-report-log.txt';
@@ -41,11 +41,11 @@ function custom_sales_report_activate()
 
     // Write a test entry to the log file
     $test_message = 'Log file created and plugin activated.';
-    custom_sales_report_log_event($test_message);
+    woocommerce_sales_insights_log_event($test_message);
 
     // Schedule the sales report email
     if (!wp_next_scheduled('send_sales_email')) {
-        $send_time = get_option('custom_sales_report_send_time', '12:00 am');
+        $send_time = get_option('woocommerce_sales_insights_send_time', '12:00 am');
         $current_time = current_time('timestamp');
 
         // Calculate the next send time for the start of the following month based on the user-specified time
@@ -61,16 +61,16 @@ function custom_sales_report_activate()
 }
 
 // Deactivation hook callback
-function custom_sales_report_deactivate()
+function woocommerce_sales_insights_deactivate()
 {
     // Remove the scheduled daily sales report email
     wp_clear_scheduled_hook('send_sales_email');
 }
 
 // Schedule the sales report email
-function custom_sales_report_schedule_email()
+function woocommerce_sales_insights_schedule_email()
 {
-    $send_time = get_option('custom_sales_report_send_time', '12:00 am');
+    $send_time = get_option('woocommerce_sales_insights_send_time', '12:00 am');
 
     // Calculate the next send time for the start of the following month based on the user-specified time
     $current_time = current_time('timestamp');
@@ -83,41 +83,41 @@ function custom_sales_report_schedule_email()
 
 
 // Add settings page to the admin menu
-add_action('admin_menu', 'custom_sales_report_add_settings_page');
+add_action('admin_menu', 'woocommerce_sales_insights_add_settings_page');
 
 // Register settings
-add_action('admin_init', 'custom_sales_report_register_settings');
+add_action('admin_init', 'woocommerce_sales_insights_register_settings');
 
 // Add settings page
-function custom_sales_report_add_settings_page()
+function woocommerce_sales_insights_add_settings_page()
 {
     add_menu_page(
         'WooCommerce Sales Insights Settings',
         'WooCommerce Sales Insights',
         'manage_options',
         'custom-sales-report-settings',
-        'custom_sales_report_settings',
+        'woocommerce_sales_insights_settings',
         'dashicons-chart-bar',
         99
     );
 }
 
 // Register settings
-function custom_sales_report_register_settings()
+function woocommerce_sales_insights_register_settings()
 {
-    register_setting('custom_sales_report_settings_group', 'custom_sales_report_email_addresses');
-    register_setting('custom_sales_report_settings_group', 'custom_sales_report_send_time', 'custom_sales_report_validate_send_time');
+    register_setting('woocommerce_sales_insights_settings_group', 'woocommerce_sales_insights_email_addresses');
+    register_setting('woocommerce_sales_insights_settings_group', 'woocommerce_sales_insights_send_time', 'woocommerce_sales_insights_validate_send_time');
 }
 
 // Validate the send time setting
-function custom_sales_report_validate_send_time($send_time)
+function woocommerce_sales_insights_validate_send_time($send_time)
 {
     // Check if the send time has changed
-    $current_send_time = get_option('custom_sales_report_send_time', '12:00 am');
+    $current_send_time = get_option('woocommerce_sales_insights_send_time', '12:00 am');
     if ($send_time !== $current_send_time) {
         // Update the scheduled event with the new send time
         wp_clear_scheduled_hook('send_sales_email');
-        custom_sales_report_schedule_email();
+        woocommerce_sales_insights_schedule_email();
     }
 
     return $send_time;
@@ -127,11 +127,11 @@ function custom_sales_report_validate_send_time($send_time)
 add_action('send_sales_email', 'send_sales_email');
 
 // Action hook to log error and send email notification
-add_action('wp_mail_failed', 'custom_sales_report_mail_failed', 10, 1);
+add_action('wp_mail_failed', 'woocommerce_sales_insights_mail_failed', 10, 1);
 
 // Log and notify on mail failure
-function custom_sales_report_mail_failed($wp_error)
+function woocommerce_sales_insights_mail_failed($wp_error)
 {
     $error_message = $wp_error->get_error_message();
-    custom_sales_report_log_errors($error_message);
+    woocommerce_sales_insights_log_errors($error_message);
 }
