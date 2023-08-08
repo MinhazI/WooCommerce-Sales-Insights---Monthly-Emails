@@ -539,9 +539,9 @@ function send_sales_email()
                                 <th class="sales-report-table-cell-border-top">Product Name</th>
                                 <th class="sales-report-table-cell-border-top">Product Category</th>
                                 <th class="sales-report-table-cell-border-top">Supplier Name</th>
-                                <th class="sales-report-table-cell-border-top">Order Amount</th>
+                                <th class="sales-report-table-cell-border-top">Product Amount</th>
                                 <th class="sales-report-table-cell-border-top">Commission</th>
-                                <th class="sales-report-table-cell-border-top">Total Amount After Commission</th>
+                                <th class="sales-report-table-cell-border-top">Product Amount After Commission</th>
                             </tr>
                             </thead>
                             <tbody>
