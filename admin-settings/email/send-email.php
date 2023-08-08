@@ -65,6 +65,8 @@ function send_sales_email()
         $total_sales = 0;
         $total_order_amount = 0;
         $count = 0;
+        $total_commission = 0;
+        $total_price_after_commission = 0;
 
         woocommerce_sales_insights_log_event('Preparing to send sales report email...');
         $sales_report = '<!doctype html>
@@ -237,6 +239,10 @@ function send_sales_email()
     
             .table tr:nth-child(even) {
                 background-color: #f2f2f2
+            }
+
+            .even-row{
+                background-color: #f2f2f2 !important
             }
     
             /*
@@ -972,9 +978,7 @@ function send_sales_email()
     
                                                                     <p style="text-align: justify;">This email was sent from
                                                                         your website ' . get_site_url() . ' and is a summary of
-                                                                        the monthly sales on your website for between ' . $sales_report_date .
-            woocommerce_sales_insights_log_event('Email body 1') . '. Please
-                                                                        find more details below</p>
+                                                                        the monthly sales on your website for between ' . $sales_report_date . '.</p>
     
                                                                 </td>
                                                             </tr>
@@ -1020,30 +1024,26 @@ function send_sales_email()
                             <tr>
                                 <td colspan="9"><p style="font-size: large;">Completed orders between ' . $sales_report_date . '</p></td>
                             </tr>
-                            <tr>
+                            <tr style="border: 1px solid lightgray;">
                                 <th>#</th>
                                 <th>Order ID</th>
                                 <th>Product Name</th>
                                 <th>Product Category</th>
                                 <th>Order Quantity</th>
-                                <th>Supplier Name</th>
+                                <th>Supplier\'s Name</th>
                                 <th>Order Amount</th>
                                 <th>Commission</th>
                                 <th>Total Amount After Commission</th>
                             </tr>
                             ';
-        woocommerce_sales_insights_log_event('Email body 2');
         $completed_sales_query = get_completed_sales_data();
-        woocommerce_sales_insights_log_event('completed sales query: ' . print_r($completed_sales_query));
-        woocommerce_sales_insights_log_event('Outside completed sales loop');
         if ($completed_sales_query->have_posts()) {
-            woocommerce_sales_insights_log_event('inside completed sales loop');
             while ($completed_sales_query->have_posts()) {
-                woocommerce_sales_insights_log_event('inside completed sales loop while');
                 $completed_sales_query->the_post();
                 $order = wc_get_order(get_the_ID());
 
                 foreach ($order->get_items() as $item_id => $item) {
+                    $row_class = ($count % 2 == 0) ? 'even-row' : 'odd-row';
                     $product = $item->get_product();
                     $product_id = $item->get_product_id();
                     $product_name = $product->get_name();
@@ -1069,8 +1069,7 @@ function send_sales_email()
                     if ($supplier = get_field('supplier', $product_id, true)) {
                         $supplier_name = $supplier->name;
                     } else {
-                        $supplier_name = 'No supplier name found'; // No Supplier Name available
-                        woocommerce_sales_insights_log_event('No Supplier Name available for product ID: ' . $product->get_id() . ' - ' . $product_name . ' - ' . $product_url);
+                        $supplier_name = 'No supplier found'; // No Supplier Name available
                     }
 
                     $product_commission_final = null;
@@ -1078,8 +1077,11 @@ function send_sales_email()
                     try {
                         if ($product_commission !== 0) {
                             $product_commission_final = get_option('woocommerce_currency') . '' . wc_price($product_commission);
+
+                            $total_commission += $product_commission;
+                            $total_price_after_commission += $item->get_total() - $product_commission;
                         } else {
-                            $product_commission_final = 'Not a FROK product';
+                            $product_commission_final = 'This is not a FROK product';
                         }
                     } catch (Exception $e) {
                         woocommerce_sales_insights_log_errors('Exception: ' . $e);
@@ -1087,7 +1089,7 @@ function send_sales_email()
 
                     // $supplier = "Not available";
 
-                    $sales_report .= '<tr>';
+                    $sales_report .= '<tr class="' . $row_class . '">';
                     $sales_report .= '<td>' . $count += 1 . '</td>';
                     $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
                     $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
@@ -1106,10 +1108,12 @@ function send_sales_email()
             $sales_report .= '<tr>
                                 <td colspan="6">Total</td>
                                 <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
+                                <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_commission . '</td>
+                                <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_price_after_commission . '</td>
                             </tr>';
             wp_reset_postdata();
         } else {
-            $sales_report .= '<tr><td colspan="7">No completed orders found.</td></tr>';
+            $sales_report .= '<tr><td colspan="7">No completed orders for the month.</td></tr>';
         }
         $sales_report .= '
     
@@ -1145,8 +1149,8 @@ function send_sales_email()
                                                                     style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
     
                                                                     <p style="text-align: center;"><small>This report was
-                                                                            generated automatically by the WooCommerce Sales Insights plugin developed by Win
-                                                                            Authority LLC.</small></p>
+                                                                            generated automatically by the WooCommerce Sales Insights plugin developed by 
+                                                                            <br/>Win Authority LLC.</small></p>
     
                                                                 </td>
                                                             </tr>
