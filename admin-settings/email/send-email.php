@@ -109,6 +109,8 @@ function send_sales_email()
                     margin:0;
                     padding:0;
                     width:100%;
+                    justify-content: center;
+                    align-items: center;
                 }
                 .mcnPreviewText{
                     display:none !important;
@@ -156,7 +158,7 @@ function send_sales_email()
                     padding:10px;
                 }
                 .templateContainer{
-                    max-width:600px !important;
+                    max-width:100% !important;
                 }
                 a.mcnButton{
                     display:block;
@@ -332,7 +334,7 @@ function send_sales_email()
 
             @media only screen and (min-width:768px){
                 .templateContainer{
-                    width:600px !important;
+                    width:100% !important;
                 }
         
         }	@media only screen and (max-width: 480px){
@@ -489,9 +491,9 @@ function send_sales_email()
                     <td align="center" valign="top" id="bodyCell">
                         <!-- BEGIN TEMPLATE // -->
                         <!--[if (gte mso 9)|(IE)]>
-                            <table align="center" border="0" cellspacing="0" cellpadding="0" width="600" style="width:600px;">
+                            <table align="center" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
                             <tr>
-                            <td align="center" valign="top" width="600" style="width:600px;">
+                            <td align="center" valign="top" width="100%" style="width:100%;">
                             <![endif]-->
                         <table border="0" cellpadding="0" cellspacing="0" width="100%" class="templateContainer">
                             <tr>
@@ -513,7 +515,7 @@ function send_sales_email()
                     <![endif]-->
     
                                                     <!--[if mso]>
-                    <td valign="top" width="600" style="width:600px;">
+                    <td valign="top" width="100%" style="width:100%;">
                     <![endif]-->
                                                     <table align="left" border="0" cellpadding="0" cellspacing="0"
                                                         style="max-width:100%; min-width:100%;" width="100%"
@@ -570,14 +572,14 @@ function send_sales_email()
   <table style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;border-spacing: 0;width: 100%;">
                         <thead>
                             <tr>
-                                <td colspan="8"><p style="font-size: large;">Completed orders between ' . $sales_report_date . '</p></td>
+                                <td colspan="8"><p style="font-size: large;">Sales between ' . $sales_report_date . '</p></td>
                             </tr>
                             <tr style="border: 1px solid #f2f2f2;">
                                 <th>#</th>
                                 <th>Order ID</th>
                                 <th>Product Name</th>
                                 <th>Product Category</th>
-                                <th>Suppliers Name</th>
+                                <th>Supplier Name</th>
                                 <th>Order Amount</th>
                                 <th>Commission</th>
                                 <th>Total Amount After Commission</th>
@@ -687,7 +689,7 @@ function send_sales_email()
                     <![endif]-->
     
                                                     <!--[if mso]>
-                    <td valign="top" width="600" style="width:600px;">
+                    <td valign="top" width="100%" style="width:100%;">
                     <![endif]-->
                                                     <table align="left" border="0" cellpadding="0" cellspacing="0"
                                                         style="max-width:100%; min-width:100%;" width="100%"
@@ -699,8 +701,7 @@ function send_sales_email()
                                                                     style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
     
                                                                     <p style="text-align: center;"><small>This report was
-                                                                            generated automatically by the WooCommerce Sales Insights plugin developed by 
-                                                                            <br/>Win Authority LLC.</small></p>
+                                                                            generated automatically by WooCommerce Sales Insights plugin developed by Win Authority LLC on '. wp_date('F j, Y', strtotime('today')) .'.</small></p>
     
                                                                 </td>
                                                             </tr>
@@ -739,7 +740,7 @@ function send_sales_email()
     </html>';
 
         // Send the email
-        $subject = 'Daily Sales Report - ' . $sales_report_date;
+        $subject = 'Monthly Sales Report - ' . $sales_report_date;
         $headers = array('Content-Type: text/html; charset=UTF-8');
         $message = $sales_report;
         wp_mail($email_addresses, $subject, $message, $headers);
