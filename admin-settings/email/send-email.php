@@ -325,9 +325,25 @@ function send_sales_email()
                   
                   th, td {
                     text-align: center;
-                    padding: 8px;
+                    padding: 12px;
                   }
 
+                  .sales-report-table-cell-border {
+                    border-left: 1px solid #d1d1d1;
+                    border-right: 1px solid #d1d1d1;
+                  }
+
+                  .sales-report-table-cell-border-bottom{
+                    border-left: 1px solid #d1d1d1;
+                    border-right: 1px solid #d1d1d1;
+                    border-bottom: 1px solid #d1d1d1;
+                }
+
+                .sales-report-table-cell-border-top{
+                    border-left: 1px solid #d1d1d1;
+                    border-right: 1px solid #d1d1d1;
+                    border-top: 1px solid #d1d1d1;
+                }
                   .even-row{
                     background-color: #f2f2f2;
                   }
@@ -496,72 +512,6 @@ function send_sales_email()
                             <td align="center" valign="top" width="100%" style="width:100%;">
                             <![endif]-->
                         <table border="0" cellpadding="0" cellspacing="0" width="100%" class="templateContainer">
-                            <tr>
-                                <td valign="top" id="templatePreheader"></td>
-                            </tr>
-                            <tr>
-                                <td valign="top" id="templateHeader"></td>
-                            </tr>
-                            <tr>
-                                <td valign="top" id="templateBody">
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock"
-                                        style="min-width:100%;">
-                                        <tbody class="mcnTextBlockOuter">
-                                            <tr>
-                                                <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
-                                                    <!--[if mso]>
-                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
-                    <tr>
-                    <![endif]-->
-    
-                                                    <!--[if mso]>
-                    <td valign="top" width="100%" style="width:100%;">
-                    <![endif]-->
-                                                    <table align="left" border="0" cellpadding="0" cellspacing="0"
-                                                        style="max-width:100%; min-width:100%;" width="100%"
-                                                        class="mcnTextContentContainer">
-                                                        <tbody>
-                                                            <tr>
-    
-                                                                <td valign="top" class="mcnTextContent"
-                                                                    style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
-    
-                                                                    <p style="text-align: justify;">This email was sent from
-                                                                        your website ' . get_site_url() . ' and is a summary of
-                                                                        the monthly sales on your website for between ' . $sales_report_date . '.</p>
-    
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                    <!--[if mso]>
-                    </td>
-                    <![endif]-->
-    
-                                                    <!--[if mso]>
-                    </tr>
-                    </table>
-                    <![endif]-->
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock"
-                                        style="min-width:100%;">
-                                        <tbody class="mcnTextBlockOuter">
-                                            <tr>
-                                                <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
-                                                    <!--[if mso]>
-                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
-                    <tr>
-                    <![endif]-->
-    
-                                                    <!--[if mso]>
-                    </tr>
-                    </table>
-                    <![endif]-->
-                                                </td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                     <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnCodeBlock">
@@ -572,17 +522,26 @@ function send_sales_email()
   <table style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;border-spacing: 0;width: 100%;">
                         <thead>
                             <tr>
-                                <td colspan="8"><p style="font-size: large;">Sales between ' . $sales_report_date . '</p></td>
+                            <td colspan="8" style="padding-top:0; padding-bottom:9px; ">
+
+                                    <p style="text-align: justify;">This email was sent from
+                                    your website ' . get_site_url() . ' and is a summary of
+                                    the monthly sales on your website for between ' . $sales_report_date . '.</p>
+
+                            </td>
                             </tr>
+                            <tr>
+                                <td colspan="8"><p style="font-size: large;">Sales between ' . $sales_report_date . '</p></td>
+                                </tr>
                             <tr style="border: 1px solid #f2f2f2;">
-                                <th>#</th>
-                                <th>Order ID</th>
-                                <th>Product Name</th>
-                                <th>Product Category</th>
-                                <th>Supplier Name</th>
-                                <th>Order Amount</th>
-                                <th>Commission</th>
-                                <th>Total Amount After Commission</th>
+                                <th class="sales-report-table-cell-border-top">#</th>
+                                <th class="sales-report-table-cell-border-top">Order ID</th>
+                                <th class="sales-report-table-cell-border-top">Product Name</th>
+                                <th class="sales-report-table-cell-border-top">Product Category</th>
+                                <th class="sales-report-table-cell-border-top">Supplier Name</th>
+                                <th class="sales-report-table-cell-border-top">Order Amount</th>
+                                <th class="sales-report-table-cell-border-top">Commission</th>
+                                <th class="sales-report-table-cell-border-top">Total Amount After Commission</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -628,9 +587,6 @@ function send_sales_email()
                     try {
                         if ($product_commission !== 0) {
                             $product_commission_final = get_option('woocommerce_currency') . '' . wc_price($product_commission);
-
-                            $total_commission += $product_commission;
-                            $total_price_after_commission += $item->get_total() - $product_commission;
                         } else {
                             $product_commission_final = 'This is not a FROK product';
                         }
@@ -641,26 +597,28 @@ function send_sales_email()
                     // $supplier = "Not available";
 
                     $sales_report .= '<tr class="' . $row_class . '">';
-                    $sales_report .= '<td>' . $count += 1 . '</td>';
-                    $sales_report .= '<td><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
-                    $sales_report .= '<td><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
-                    $sales_report .= '<td>' . implode(', ', $product_categories) . '</td>';
-                    $sales_report .= '<td>' . $supplier_name . '</br>' . $supplier_email . '</td>';
-                    $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
-                    $sales_report .= '<td>' . $product_commission_final . '</td>';
-                    $sales_report .= '<td>' . get_option('woocommerce_currency') . '' . wc_price($item->get_total() - $product_commission) . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . $count += 1 . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . implode(', ', $product_categories) . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . $supplier_name . '</br>' . $supplier_email . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . $product_commission_final . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . get_option('woocommerce_currency') . '' . wc_price($item->get_total() - $product_commission) . '</td>';
                     $sales_report .= '</tr>';
 
                     $total_sales += $item->get_quantity();
                     $total_order_amount += $item->get_total();
+
+                    $total_commission += $product_commission;
+                    $total_price_after_commission += $item->get_total() - $product_commission;
                 }
             }
-            $sales_report .= '<tr><td colspan="8"></td></tr>
-                            <tr>
-                                <td colspan="5">Totals</td>
-                                <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-                                <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_commission . '</td>
-                                <td>' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_price_after_commission . '</td>
+            $sales_report .= '<tr style="padding-top: 20px">
+                                <td colspan="5"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_commission . '</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_price_after_commission . '</td>
                             </tr>';
             wp_reset_postdata();
         } else {
@@ -701,7 +659,7 @@ function send_sales_email()
                                                                     style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
     
                                                                     <p style="text-align: center;"><small>This report was
-                                                                            generated automatically by WooCommerce Sales Insights plugin developed by Win Authority LLC on '. wp_date('F j, Y', strtotime('today')) .'.</small></p>
+                                                                            generated automatically by WooCommerce Sales Insights plugin developed by Win Authority LLC on ' . wp_date('F j, Y', strtotime('today')) . '.</small></p>
     
                                                                 </td>
                                                             </tr>
@@ -755,6 +713,6 @@ function send_sales_email()
         $log_message = 'Sales report email sent to: ' . $email_string;
         woocommerce_sales_insights_log_event($log_message);
     } catch (Exception $e) {
-        woocommerce_sales_insights_log_event($e);
+        woocommerce_sales_insights_log_errors($e);
     }
 }
