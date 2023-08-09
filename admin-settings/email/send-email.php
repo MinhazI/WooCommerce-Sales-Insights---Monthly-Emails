@@ -622,7 +622,7 @@ function send_sales_email()
                             </tr>';
             wp_reset_postdata();
         } else {
-            $sales_report .= '<tr><td colspan="7">No completed orders for the month.</td></tr>';
+            $sales_report .= '<tr><td colspan="8">No sales for the month.</td></tr>';
         }
         $sales_report .= '
     
