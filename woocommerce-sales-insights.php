@@ -5,7 +5,7 @@ Plugin URI: https://www.winauthority.com/
 Description: A custom plugin for sending monthly sales reports via email.
 Author: Win Authority LLC
 Author URI: https://www.winauthority.com/
-Version: 1.2.0
+Version: 1.4.0
 */
 
 require_once(__DIR__ . '/supplier-settings/add-to-menu.php');

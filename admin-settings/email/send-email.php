@@ -15,7 +15,8 @@ function send_sales_email()
         $email_addresses = explode(',', $email_addresses); // Split the email addresses by comma
         $email_addresses = array_map('trim', $email_addresses); // Trim whitespace from each email address
         $send_time = get_option('woocommerce_sales_insights_send_time', '8:00 am');
-        $woocommerce_currency_symbol = get_woocommerce_currency_symbol();
+        $woocommerce_currency_symbol = get_woocommerce_currency_symbol() ?: get_option('woocommerce_currency');
+
 
         $next_month_timestamp = strtotime('first day of next month');
 
@@ -571,6 +572,9 @@ function send_sales_email()
                         } catch (Exception $e) {
                             woocommerce_sales_insights_log_errors('Exception: ' . $e);
                         }
+                    } else {
+                        $total_price = $item->get_total();
+                        $product_commission = $total_price * (2 / 100);
                     }
 
                     $supplier_name = '';
@@ -585,11 +589,11 @@ function send_sales_email()
                     $product_commission_final = null;
 
                     try {
-                        if ($product_commission !== 0) {
-                            $product_commission_final = get_option('woocommerce_currency') . '' . wc_price($product_commission);
-                        } else {
-                            $product_commission_final = 'This is not a FROK product';
-                        }
+                        // if ($product_commission !== 0) {
+                            $product_commission_final = '' . wc_price($product_commission);
+                        // } else {
+                        //     $product_commission_final = 'This is not a FROK product';
+                        // }
                     } catch (Exception $e) {
                         woocommerce_sales_insights_log_errors('Exception: ' . $e);
                     }
@@ -602,9 +606,9 @@ function send_sales_email()
                     $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . implode(', ', $product_categories) . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . $supplier_name . '</br>' . $supplier_email . '</td>';
-                    $sales_report .= '<td class="sales-report-table-cell-border">' . get_option('woocommerce_currency') . '' . wc_price($item->get_total()) . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . '' . wc_price($item->get_total()) . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . $product_commission_final . '</td>';
-                    $sales_report .= '<td class="sales-report-table-cell-border">' . get_option('woocommerce_currency') . '' . wc_price($item->get_total() - $product_commission) . '</td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border">' . '' . wc_price($item->get_total() - $product_commission) . '</td>';
                     $sales_report .= '</tr>';
 
                     $total_sales += $item->get_quantity();
@@ -616,9 +620,9 @@ function send_sales_email()
             }
             $sales_report .= '<tr style="padding-top: 20px">
                                 <td colspan="5"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_order_amount . '</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_commission . '</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . get_option('woocommerce_currency') . $woocommerce_currency_symbol . '' . $total_price_after_commission . '</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' .wc_price($total_order_amount) . '</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_commission) . '</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_price_after_commission) . '</td>
                             </tr>';
             wp_reset_postdata();
         } else {
