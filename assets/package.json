@@ -1,0 +1,15 @@
+{
+  "name": "woocommerce-sales-insights",
+  "version": "1.0.0",
+  "description": "A plugin for sending WooCommerce monthly sales reports via email.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Win Authority LLC",
+  "license": "MIT",
+  "private": true,
+  "browserslist": [
+    "defaults"
+  ]
+}
