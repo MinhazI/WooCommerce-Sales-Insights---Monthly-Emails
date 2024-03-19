@@ -5,11 +5,22 @@ function send_sales_email()
 {
     try {
 
+        // $site_timezone = get_option('timezone_string');
+        // // Set the timezone
+        // if ($site_timezone) {
+        //     date_default_timezone_set($site_timezone);
+        // }
+        
+        // Get the site timezone
         $site_timezone = get_option('timezone_string');
-        // Set the timezone
-        if ($site_timezone) {
-            date_default_timezone_set($site_timezone);
+        
+        // Set default timezone to 'Asia/Colombo' if not set
+        if (empty($site_timezone)) {
+            $site_timezone = 'UTC'; // Set default timezone to Asia/Colombo
         }
+
+        // Set the timezone
+        date_default_timezone_set($site_timezone);
 
         $email_addresses = get_option('woocommerce_sales_insights_email_addresses', '');
         $email_addresses = explode(',', $email_addresses); // Split the email addresses by comma

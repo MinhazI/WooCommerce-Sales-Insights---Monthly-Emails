@@ -1,0 +1,6 @@
+[2024-03-01 09:40:14] Sales report email sent to: support@frokme.com,natalie.jayasuriya@gmail.com
+[2024-03-01 09:40:15] Sales report email sent to: support@frokme.com,natalie.jayasuriya@gmail.com
+[2024-03-01 09:41:20] Settings saved. Next scheduled email: 01/04/2024 2:30 pm
+[2024-03-01 09:46:32] Sales report email sent to: support@frokme.com,natalie.jayasuriya@gmail.com
+[2024-03-01 09:46:34] Sales report email sent to: support@frokme.com,natalie.jayasuriya@gmail.com
+[2024-03-01 09:52:35] Settings saved. Next scheduled email: 01/04/2024 2:30 pm

@@ -17,7 +17,7 @@ function woocommerce_sales_insights_log_errors($message)
 
     $admin_email = 'minhaz@winauthority.com'; // Change this to the desired email address
     $subject = 'Sales Report Error';
-    $message = 'An error occurred while sending the sales report email. Please check the log file for more details.';
+    $message = 'An error occurred while sending the sales report email on the website ' . site_url() . '. Please check the log file for more details.';
     $headers = array('Content-Type: text/html; charset=UTF-8');
     wp_mail($admin_email, $subject, $message, $headers);
 }

@@ -33,10 +33,10 @@ function render_suppliers()
             add_option('custom_supplier_data', $supplier_data);
 
             // Show success message or perform any other action
-            echo '<div class="notice notice-success"><p>Supplier added successfully!</p></div>';
+            // echo '<div class="notice notice-success"><p>Supplier added successfully!</p></div>';
         } else {
             // Show error message or perform any other action
-            echo '<div class="notice notice-error"><p>Please enter both supplier name and email.</p></div>';
+            // echo '<div class="notice notice-error"><p>Please enter both supplier name and email.</p></div>';
         }
     }
 
