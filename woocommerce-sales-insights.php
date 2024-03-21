@@ -2,10 +2,10 @@
 /*
 Plugin Name: WooCommerce Sales Insights
 Plugin URI: https://www.winauthority.com/
-Description: A custom plugin for sending monthly sales reports via email.
+Description: A plugin for sending WooCommerce monthly sales reports via email.
 Author: Win Authority LLC
 Author URI: https://www.winauthority.com/
-Version: 1.4.0
+Version: 1.4.3
 */
 
 require_once(__DIR__ . '/supplier-settings/add-to-menu.php');
@@ -13,8 +13,6 @@ require_once(__DIR__ . '/queries/queries.php');
 require_once(__DIR__ . '/admin-settings/settings-page.php');
 require_once(__DIR__ . '/admin-settings/logs.php');
 require_once(__DIR__ . '/admin-settings/email/send-email.php');
-
-// date_default_timezone_set(get_option('timezone_string'));
 
 // Register the activation hook
 register_activation_hook(__FILE__, 'woocommerce_sales_insights_activate');
@@ -55,9 +53,6 @@ function woocommerce_sales_insights_activate()
         // Schedule the email
         wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
     }
-
-
-    add_custom_menu_item();
 }
 
 // Deactivation hook callback
@@ -80,10 +75,8 @@ function woocommerce_sales_insights_schedule_email()
     // Schedule the email
     wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
 }
-
-
-// Add settings page to the admin menu
 add_action('admin_menu', 'woocommerce_sales_insights_add_settings_page');
+
 
 // Register settings
 add_action('admin_init', 'woocommerce_sales_insights_register_settings');
@@ -123,6 +116,23 @@ function woocommerce_sales_insights_validate_send_time($send_time)
     return $send_time;
 }
 
+// Define a custom action to log error messages
+function log_plugin_error($error_message)
+{
+    // You can customize this part to log the error message to a file or database, or take any other action you need.
+    error_log('Plugin Error: ' . $error_message);
+}
+
+// Somewhere in your plugin code where you encounter an error, call the custom action with the error message
+function handle_plugin_error()
+{
+    $error_message = 'An error occurred in the plugin WooCommerce Sales Insights.';
+    do_action('custom_plugin_error', $error_message);
+}
+
+// Hook the custom action to log the error message
+add_action('custom_plugin_error', 'log_plugin_error');
+
 // Action hook to send sales report email
 add_action('send_sales_email', 'send_sales_email');
 
@@ -132,6 +142,8 @@ add_action('wp_mail_failed', 'woocommerce_sales_insights_mail_failed', 10, 1);
 // Log and notify on mail failure
 function woocommerce_sales_insights_mail_failed($wp_error)
 {
-    $error_message = $wp_error->get_error_message();
-    woocommerce_sales_insights_log_errors($error_message);
+    if (strpos($wp_error->get_error_message(), 'An error occurred in the plugin WooCommerce Sales Insights.') !== false) {
+        $error_message = $wp_error->get_error_message();
+        woocommerce_sales_insights_log_errors($error_message);
+    }
 }

@@ -1,15 +1,19 @@
-
 <?php
 // Send sales report email
 function send_sales_email()
 {
     try {
 
+        // Get the site timezone
         $site_timezone = get_option('timezone_string');
-        // Set the timezone
-        if ($site_timezone) {
-            date_default_timezone_set($site_timezone);
+
+        // Set default timezone to 'Asia/Colombo' if not set
+        if (empty($site_timezone)) {
+            $site_timezone = 'UTC'; // Set default timezone to Asia/Colombo
         }
+
+        // Set the timezone
+        date_default_timezone_set($site_timezone);
 
         $email_addresses = get_option('woocommerce_sales_insights_email_addresses', '');
         $email_addresses = explode(',', $email_addresses); // Split the email addresses by comma
@@ -590,7 +594,7 @@ function send_sales_email()
 
                     try {
                         // if ($product_commission !== 0) {
-                            $product_commission_final = '' . wc_price($product_commission);
+                        $product_commission_final = '' . wc_price($product_commission);
                         // } else {
                         //     $product_commission_final = 'This is not a FROK product';
                         // }
@@ -620,7 +624,7 @@ function send_sales_email()
             }
             $sales_report .= '<tr style="padding-top: 20px">
                                 <td colspan="5"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' .wc_price($total_order_amount) . '</td>
+                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_order_amount) . '</td>
                                 <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_commission) . '</td>
                                 <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_price_after_commission) . '</td>
                             </tr>';

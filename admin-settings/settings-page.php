@@ -1,5 +1,4 @@
 <?php
-
 // Settings page callback
 function woocommerce_sales_insights_settings()
 {
