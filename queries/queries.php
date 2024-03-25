@@ -6,18 +6,16 @@ function get_completed_sales_data()
         $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
         $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
 
-        $args = array(
-            'post_type' => 'shop_order',
-            'posts_per_page' => -1,
-            'post_status' => 'wc-completed',
-            'date_query'     => array(
+        $completed_orders = wc_get_orders(array(
+            'status' => 'wc-completed',
+            'limit'  => -1,
+            'date_query' => array(
                 'after'     => $start_date,
                 'before'    => $end_date,
                 'inclusive' => true,
             ),
-        );
-
-        return $completed_sales_query = new WP_Query($args);
+        ));
+        return $completed_orders;
     } catch (Exception $e) {
         woocommerce_sales_insights_log_errors($e);
     }
@@ -27,165 +25,156 @@ function get_completed_sales_data()
 // Get processing order data from WooCommerce
 function get_processing_sales_data()
 {
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-processing',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    $processing_sales_query = wc_get_orders(array(
+        'status' => 'wc-processing',
+        'limit'  => -1,
+        'date_query' => array(
+            'after'     => $start_date,
+            'before'    => $end_date,
             'inclusive' => true,
         ),
-    );
-
-    return $processing_sales_query = new WP_Query($args);
+    ));
+    return $processing_sales_query;
 }
 
 // Get on-hold order data from WooCommerce
 function get_on_hold_sales_data()
 {
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-on-hold',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
+
+    $on_hold_sales_query = wc_get_orders(array(
+        'status' => 'wc-on-hold',
+        'limit'  => -1,
+        'date_query' => array(
+            'after'     => $start_date,
+            'before'    => $end_date,
             'inclusive' => true,
         ),
-    );
-
-    return $on_hold_sales_query = new WP_Query($args);
+    ));
+    return $on_hold_sales_query;
 }
 
 // Get cancelled order data from WooCommerce
 function get_cancelled_sales_data()
 {
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-cancelled',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    $on_hold_sales_query = wc_get_orders(array(
+        'status' => 'wc-on-hold',
+        'limit'  => -1,
+        'date_query' => array(
+            'after'     => $start_date,
+            'before'    => $end_date,
             'inclusive' => true,
         ),
-    );
-
-    return $cancelled_sales_query = new WP_Query($args);
+    ));
+    return $on_hold_sales_query;
 }
 
 // Get pending order data from WooCommerce
 function get_pending_sales_data()
 {
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-pending',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
+
+    $pending_sales_query = wc_get_orders(array(
+        'status' => 'wc-pending',
+        'limit'  => -1,
+        'date_query' => array(
+            'after'     => $start_date,
+            'before'    => $end_date,
             'inclusive' => true,
         ),
-    );
-
-    return $pending_sales_query = new WP_Query($args);
+    ));
+    return $pending_sales_query;
 }
 
 // Get refunded order data from WooCommerce
 function get_refunded_sales_data()
 {
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
 
-    $args = array(
-        'post_type'      => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status'    => 'wc-refunded',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    $refunded_sales_query = wc_get_orders(array(
+        'status' => 'wc-refunded',
+        'limit'  => -1,
+        'date_query' => array(
+            'after'     => $start_date,
+            'before'    => $end_date,
             'inclusive' => true,
         ),
-    );
-
-    return $refunded_sales_query = new WP_Query($args);
+    ));
+    return $refunded_sales_query;
 }
 
 // Get pending order data from WooCommerce
 function get_failed_sales_data()
 {
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-failed',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
+
+    $failed_sales_query = wc_get_orders(array(
+        'status' => 'wc-failed',
+        'limit'  => -1,
+        'date_query' => array(
+            'after'     => $start_date,
+            'before'    => $end_date,
             'inclusive' => true,
         ),
-    );
-
-    return $failed_sales_query = new WP_Query($args);
+    ));
+    return $failed_sales_query;
 }
 
 function get_count_of_completed_orders()
 {
+    // Calculate the start and end of yesterday
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $count = 0;
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-completed',
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    // Query completed orders within yesterday's date range
+    $completed_orders = wc_get_orders(array(
+        'status' => 'wc-completed',
+        'date_query' => array(
+            'after'     => date('Y-m-d H:i:s', $start_date),
+            'before'    => date('Y-m-d H:i:s', $end_date),
             'inclusive' => true,
         ),
-    );
+    ));
 
-    $orders = new WP_Query($args);
-    $count += $orders->found_posts;
+    // Get the count of completed orders
+    $count = count($completed_orders);
 
     return $count;
 }
 
+
 function get_count_of_individual_order_status($status)
 {
 
-    $start_of_day = strtotime('midnight', strtotime('yesterday')); // Timestamp of the start of yesterday
-    $end_of_day = strtotime('tomorrow', $start_of_day) - 1; // Timestamp of the end of yesterday
-    $count = 0;
-    $args = array(
-        'post_type' => 'shop_order',
-        'posts_per_page' => -1,
-        'post_status' => 'wc-' . $status,
-        'date_query'     => array(
-            'after'     => date('Y-m-d H:i:s', $start_of_day),
-            'before'    => date('Y-m-d H:i:s', $end_of_day),
+    // Calculate the start and end of yesterday
+    $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
+    $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
+
+    // Query completed orders within yesterday's date range
+    $completed_orders = wc_get_orders(array(
+        'status' => 'wc-' . $status,
+        'date_query' => array(
+            'after'     => date('Y-m-d H:i:s', $start_date),
+            'before'    => date('Y-m-d H:i:s', $end_date),
             'inclusive' => true,
         ),
-    );
+    ));
 
-    $orders = new WP_Query($args);
-    $count += $orders->found_posts;
+    // Get the count of completed orders
+    $count = count($completed_orders);
 
     return $count;
 }

@@ -5,10 +5,9 @@ Plugin URI: https://www.winauthority.com/
 Description: A plugin for sending WooCommerce monthly sales reports via email.
 Author: Win Authority LLC
 Author URI: https://www.winauthority.com/
-Version: 1.5.0
+Version: 1.6.0
 */
 
-require_once(__DIR__ . '/supplier-settings/add-to-menu.php');
 require_once(__DIR__ . '/queries/queries.php');
 require_once(__DIR__ . '/admin-settings/settings-page.php');
 require_once(__DIR__ . '/admin-settings/logs.php');

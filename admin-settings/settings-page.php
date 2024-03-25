@@ -6,9 +6,9 @@ function woocommerce_sales_insights_settings()
     $site_timezone = get_option('timezone_string');
 
     // Set the timezone
-    if ($site_timezone) {
-        date_default_timezone_set($site_timezone);
-    }
+    // if ($site_timezone) {
+    date_default_timezone_set($site_timezone);
+    // }
 
     // Save the settings if form is submitted
     if (isset($_POST['woocommerce_sales_insights_submit'])) {
@@ -32,7 +32,7 @@ function woocommerce_sales_insights_settings()
         update_option('woocommerce_sales_insights_send_time', $send_time);
 
         // Calculate the next send time
-        $next_send_time = strtotime('first day of +1 month', strtotime('today ' . $send_time . ' ' . $site_timezone));
+        $next_send_time = strtotime('first day of +1 month', strtotime('today ' . $send_time));
         $current_time = strtotime(current_time('Y-m-d H:i:s'));
 
         // Check if the next send time is in the past

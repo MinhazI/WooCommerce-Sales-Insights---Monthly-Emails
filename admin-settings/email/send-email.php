@@ -543,7 +543,6 @@ function send_sales_email()
                                 <th class="sales-report-table-cell-border-top">Order ID</th>
                                 <th class="sales-report-table-cell-border-top">Product Name</th>
                                 <th class="sales-report-table-cell-border-top">Product Category</th>
-                                <th class="sales-report-table-cell-border-top">Supplier Name</th>
                                 <th class="sales-report-table-cell-border-top">Product Amount</th>
                                 <th class="sales-report-table-cell-border-top">Commission</th>
                                 <th class="sales-report-table-cell-border-top">Product Amount After Commission</th>
@@ -552,64 +551,38 @@ function send_sales_email()
                             <tbody>
                             ';
         $completed_sales_query = get_completed_sales_data();
-        if ($completed_sales_query->have_posts()) {
-            while ($completed_sales_query->have_posts()) {
-                $completed_sales_query->the_post();
-                $order = wc_get_order(get_the_ID());
+        if ($completed_sales_query) {
+            foreach ($completed_sales_query as $order) {
+                $order_id = $order->get_id();
+                $order = wc_get_order($order_id);
 
                 foreach ($order->get_items() as $item_id => $item) {
-                    $row_class = ($count % 2 == 0) ? 'even-row' : 'odd-row';
                     $product = $item->get_product();
                     $product_id = $item->get_product_id();
                     $product_name = $product->get_name();
                     $product_url = $product->get_permalink();
                     $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
                     $product_commission = 0;
-                    $total_price = 0;
+                    $total_price = $item->get_total();
 
-                    // Check if 'FROK' is in the product categories
+                    // Calculate product commission based on categories
                     if (in_array('FROK', $product_categories)) {
-                        // $product_commission = 0;
-                        try {
-                            $total_price = $item->get_total();
-                            $product_commission = $total_price * (60 / 100);
-                        } catch (Exception $e) {
-                            woocommerce_sales_insights_log_errors('Exception: ' . $e);
-                        }
+                        $product_commission = $total_price * (60 / 100);
                     } else {
-                        $total_price = $item->get_total();
                         $product_commission = $total_price * (2 / 100);
                     }
 
-                    $supplier_name = '';
-                    $supplier_email = '';
-                    // Retrieve the Supplier Name from the product
-                    if ($supplier = get_field('supplier', $product_id, true)) {
-                        $supplier_name = $supplier->name;
-                    } else {
-                        $supplier_name = 'No supplier found'; // No Supplier Name available
-                    }
-
-                    $product_commission_final = null;
-
-                    try {
-                        // if ($product_commission !== 0) {
-                        $product_commission_final = '' . wc_price($product_commission);
-                        // } else {
-                        //     $product_commission_final = 'This is not a FROK product';
-                        // }
-                    } catch (Exception $e) {
-                        woocommerce_sales_insights_log_errors('Exception: ' . $e);
-                    }
+                    // Format product commission
+                    $product_commission_final = wc_price($product_commission);
 
                     // $supplier = "Not available";
 
                     $sales_report .= '<tr class="' . $row_class . '">';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . $count += 1 . '</td>';
-                    $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($order->get_edit_order_url()) . '">' . $order_id . '</a></td>';
                     $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . implode(', ', $product_categories) . '</td>';
-                    $sales_report .= '<td class="sales-report-table-cell-border">' . $supplier_name . '</br>' . $supplier_email . '</td>';
+                    // $sales_report .= '<td class="sales-report-table-cell-border">' . $supplier_name . '</br>' . $supplier_email . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . '' . wc_price($item->get_total()) . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . $product_commission_final . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . '' . wc_price($item->get_total() - $product_commission) . '</td>';
@@ -623,7 +596,7 @@ function send_sales_email()
                 }
             }
             $sales_report .= '<tr style="padding-top: 20px">
-                                <td colspan="5"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
+                                <td colspan="4"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
                                 <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_order_amount) . '</td>
                                 <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_commission) . '</td>
                                 <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_price_after_commission) . '</td>
