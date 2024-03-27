@@ -4,20 +4,20 @@ function get_completed_sales_data()
     try {
         // Calculate the start and end date of the previous month
         $start_date = date('Y-m-d H:i:s', strtotime("first day of last month", current_time('timestamp')));
-        $end_date = date('Y-m-t 23:59:59', strtotime("last day of last month", current_time('timestamp')));
+        $end_date = date('Y-m-d H:i:s', strtotime("last day of last month", current_time('timestamp')));
 
+        // Retrieve completed orders within the date range
         $completed_orders = wc_get_orders(array(
             'status' => 'wc-completed',
-            'limit'  => -1,
-            'date_query' => array(
-                'after'     => $start_date,
-                'before'    => $end_date,
-                'inclusive' => true,
-            ),
+            'date_before' => $end_date,
+            'date_after' => $start_date,
         ));
+
         return $completed_orders;
     } catch (Exception $e) {
+        // Handle any exceptions
         woocommerce_sales_insights_log_errors($e);
+        return array(); // Return an empty array in case of error
     }
 }
 
