@@ -5,16 +5,13 @@ Plugin URI: https://www.winauthority.com/
 Description: A plugin for sending WooCommerce monthly sales reports via email.
 Author: Win Authority LLC
 Author URI: https://www.winauthority.com/
-Version: 1.4.3
+Version: 1.6.0
 */
 
-require_once(__DIR__ . '/supplier-settings/add-to-menu.php');
 require_once(__DIR__ . '/queries/queries.php');
 require_once(__DIR__ . '/admin-settings/settings-page.php');
 require_once(__DIR__ . '/admin-settings/logs.php');
 require_once(__DIR__ . '/admin-settings/email/send-email.php');
-
-// date_default_timezone_set(get_option('timezone_string'));
 
 // Register the activation hook
 register_activation_hook(__FILE__, 'woocommerce_sales_insights_activate');
@@ -55,9 +52,6 @@ function woocommerce_sales_insights_activate()
         // Schedule the email
         wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
     }
-
-
-    // add_custom_menu_item();
 }
 
 // Deactivation hook callback
@@ -80,10 +74,8 @@ function woocommerce_sales_insights_schedule_email()
     // Schedule the email
     wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
 }
-
-
-// Add settings page to the admin menu
 add_action('admin_menu', 'woocommerce_sales_insights_add_settings_page');
+
 
 // Register settings
 add_action('admin_init', 'woocommerce_sales_insights_register_settings');

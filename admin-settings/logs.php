@@ -1,5 +1,4 @@
 <?php
-
 // Log an event
 function woocommerce_sales_insights_log_event($message)
 {
