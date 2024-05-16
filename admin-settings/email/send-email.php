@@ -1,19 +1,13 @@
-
 <?php
 // Send sales report email
 function send_sales_email()
 {
+
     try {
 
-        // $site_timezone = get_option('timezone_string');
-        // // Set the timezone
-        // if ($site_timezone) {
-        //     date_default_timezone_set($site_timezone);
-        // }
-        
         // Get the site timezone
         $site_timezone = get_option('timezone_string');
-        
+
         // Set default timezone to 'Asia/Colombo' if not set
         if (empty($site_timezone)) {
             $site_timezone = 'UTC'; // Set default timezone to Asia/Colombo
@@ -31,25 +25,6 @@ function send_sales_email()
 
         $next_month_timestamp = strtotime('first day of next month');
 
-        // Calculate the next send time
-        // $next_send_time = strtotime('today ' . $send_time . ' ' . $site_timezone);
-        // $current_time = strtotime(current_time('Y-m-d H:i:s'));
-
-        // Check if the next send time is in the past
-        // if ($next_send_time < $current_time) {
-        //     // Add one day to the current date
-        //     $next_send_time = strtotime('+1 day', $current_time);
-
-        //     // Set the time for the next send time
-        //     $next_send_time = strtotime($send_time, $next_send_time);
-        // }
-
-        // Calculate the time difference between the next scheduled send time and the current time
-        // $time_difference = $next_send_time - $current_time;
-
-        // Remove this line, as we will calculate the next send time based on the user's timezone
-        // $next_send_time = strtotime('today ' . $send_time . ' ' . $site_timezone);
-
         // Calculate the current time in the user's timezone
         $current_time = new DateTime('now', new DateTimeZone($site_timezone));
 
@@ -58,7 +33,6 @@ function send_sales_email()
         $send_time_datetime = new DateTime();
         $send_time_datetime->setTime($send_time_parts['hour'], $send_time_parts['minute'], 0);
 
-        // Calculate the next send time
         // If the current time is after or equal to the set send time, schedule it for the next month
         $next_month = new DateTime('first day of next month', new DateTimeZone($site_timezone));
         // Calculate the next send time for the start of the next month based on the user-specified time and site timezone
@@ -66,10 +40,6 @@ function send_sales_email()
 
         // Schedule the next email based on the calculated time difference
         wp_schedule_event($next_send_time, 'monthly', 'send_sales_email');
-
-
-        // Schedule the next email based on the calculated time difference
-        // wp_schedule_event($next_send_time, 'daily', 'send_sales_email');
 
         // Calculate the previous day's date for the sales report
         $sales_report_date = wp_date('F j, Y', strtotime('first day of last month')) . ' - ' . wp_date('F j, Y', strtotime('last day of last month'));
@@ -79,6 +49,7 @@ function send_sales_email()
         $count = 0;
         $total_commission = 0;
         $total_price_after_commission = 0;
+
 
         $sales_report = '<!doctype html>
         <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -550,7 +521,6 @@ function send_sales_email()
                                 <th class="sales-report-table-cell-border-top">Order ID</th>
                                 <th class="sales-report-table-cell-border-top">Product Name</th>
                                 <th class="sales-report-table-cell-border-top">Product Category</th>
-                                <th class="sales-report-table-cell-border-top">Supplier Name</th>
                                 <th class="sales-report-table-cell-border-top">Product Amount</th>
                                 <th class="sales-report-table-cell-border-top">Commission</th>
                                 <th class="sales-report-table-cell-border-top">Product Amount After Commission</th>
@@ -558,83 +528,78 @@ function send_sales_email()
                             </thead>
                             <tbody>
                             ';
+
         $completed_sales_query = get_completed_sales_data();
-        if ($completed_sales_query->have_posts()) {
-            while ($completed_sales_query->have_posts()) {
-                $completed_sales_query->the_post();
-                $order = wc_get_order(get_the_ID());
+
+        if ($completed_sales_query) {
+            foreach ($completed_sales_query as $order) {
+                $order_id = $order->get_id();
+                $order = wc_get_order($order_id);
 
                 foreach ($order->get_items() as $item_id => $item) {
-                    $row_class = ($count % 2 == 0) ? 'even-row' : 'odd-row';
                     $product = $item->get_product();
-                    $product_id = $item->get_product_id();
-                    $product_name = $product->get_name();
-                    $product_url = $product->get_permalink();
-                    $product_categories = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'names'));
-                    $product_commission = 0;
-                    $total_price = 0;
+                    $product_name = '';
 
-                    // Check if 'FROK' is in the product categories
-                    if (in_array('FROK', $product_categories)) {
-                        // $product_commission = 0;
-                        try {
-                            $total_price = $item->get_total();
-                            $product_commission = $total_price * (60 / 100);
-                        } catch (Exception $e) {
-                            woocommerce_sales_insights_log_errors('Exception: ' . $e);
+                    if ($product) {
+                        if ($product->is_type('variation')) {
+                            // For variation products, get the parent product name
+                            $parent_product_id = $product->get_parent_id();
+                            $parent_product = wc_get_product($parent_product_id);
+                            if ($parent_product) {
+                                $product_name = $parent_product->get_name();
+                            }
+                        } else {
+                            // For simple products, directly get the product name
+                            $product_name = $product->get_name();
                         }
                     } else {
-                        $total_price = $item->get_total();
+                        // If product is not available, get the name from the order item
+                        $product_name = $item->get_name() ? $item->get_name() : 'Product deleted';
+                    }
+
+
+
+                    // Continue with the rest of your code
+                    $product_url = $product ? $product->get_permalink() : '';
+                    // $product_categories = $product ? wp_get_post_terms($item->get_product_id(), 'product_cat', array('fields' => 'names')) : [];
+                    $product_categories = $item->get_product_id() ? wp_get_post_terms($item->get_product_id(), 'product_cat', array('fields' => 'names')) : array('[Cannot retreive categories as the product was deleted.]');
+                    $product_commission = 0;
+                    $total_price = $item->get_total();
+
+                    // Calculate product commission based on categories
+                    if ($product && in_array('FROK', $product_categories)) {
+                        $product_commission = $total_price * (60 / 100);
+                    } else {
                         $product_commission = $total_price * (2 / 100);
                     }
 
-                    $supplier_name = '';
-                    $supplier_email = '';
-                    // Retrieve the Supplier Name from the product
-                    if ($supplier = get_field('supplier', $product_id, true)) {
-                        $supplier_name = $supplier->name;
-                    } else {
-                        $supplier_name = 'No supplier found'; // No Supplier Name available
-                    }
-
-                    $product_commission_final = null;
-
-                    try {
-                        // if ($product_commission !== 0) {
-                            $product_commission_final = '' . wc_price($product_commission);
-                        // } else {
-                        //     $product_commission_final = 'This is not a FROK product';
-                        // }
-                    } catch (Exception $e) {
-                        woocommerce_sales_insights_log_errors('Exception: ' . $e);
-                    }
-
-                    // $supplier = "Not available";
-
+                    // Format product commission
+                    $product_commission_final = wc_price($product_commission);
                     $sales_report .= '<tr class="' . $row_class . '">';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . $count += 1 . '</td>';
-                    $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($order->get_edit_order_url()) . '">' . get_the_ID() . '</a></td>';
+                    $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($order->get_edit_order_url()) . '">' . $order_id . '</a></td>';
                     $sales_report .= '<td class="sales-report-table-cell-border"><a href="' . esc_url($product_url) . '">' . $product_name . '</a></td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . implode(', ', $product_categories) . '</td>';
-                    $sales_report .= '<td class="sales-report-table-cell-border">' . $supplier_name . '</br>' . $supplier_email . '</td>';
+                    // $sales_report .= '<td class="sales-report-table-cell-border">' . $supplier_name . '</br>' . $supplier_email . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . '' . wc_price($item->get_total()) . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . $product_commission_final . '</td>';
                     $sales_report .= '<td class="sales-report-table-cell-border">' . '' . wc_price($item->get_total() - $product_commission) . '</td>';
                     $sales_report .= '</tr>';
 
+                    // Update totals
                     $total_sales += $item->get_quantity();
                     $total_order_amount += $item->get_total();
-
                     $total_commission += $product_commission;
                     $total_price_after_commission += $item->get_total() - $product_commission;
                 }
             }
+            // Add totals row to the sales report
             $sales_report .= '<tr style="padding-top: 20px">
-                                <td colspan="5"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' .wc_price($total_order_amount) . '</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_commission) . '</td>
-                                <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_price_after_commission) . '</td>
-                            </tr>';
+                        <td colspan="4"  class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">Totals</td>
+                        <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_order_amount) . '</td>
+                        <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_commission) . '</td>
+                        <td class="sales-report-table-cell-border-top sales-report-table-cell-border-bottom">' . wc_price($total_price_after_commission) . '</td>
+                    </tr>';
             wp_reset_postdata();
         } else {
             $sales_report .= '<tr><td colspan="8">No sales for the month.</td></tr>';
@@ -716,6 +681,7 @@ function send_sales_email()
         $subject = 'Monthly Sales Report - ' . $sales_report_date;
         $headers = array('Content-Type: text/html; charset=UTF-8');
         $message = $sales_report;
+
         wp_mail($email_addresses, $subject, $message, $headers);
 
         // Filter out empty values
