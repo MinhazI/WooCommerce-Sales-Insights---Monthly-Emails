@@ -557,9 +557,6 @@ function send_sales_email()
                         $product_name = $item->get_name() ? $item->get_name() : 'Product deleted';
                     }
 
-
-
-                    // Continue with the rest of your code
                     $product_url = $product ? $product->get_permalink() : '';
                     // $product_categories = $product ? wp_get_post_terms($item->get_product_id(), 'product_cat', array('fields' => 'names')) : [];
                     $product_categories = $item->get_product_id() ? wp_get_post_terms($item->get_product_id(), 'product_cat', array('fields' => 'names')) : array('[Cannot retreive categories as the product was deleted.]');
